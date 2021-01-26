@@ -1,18 +1,15 @@
 # coding=utf-8
-# import asyncio
 import os
-import tornado.httpserver
 import tornado.ioloop
-# import tornado.web
-# import tornado.websocket
-# from concurrent.futures.thread import ThreadPoolExecutor
+import tornado.httpserver
 from tornado import iostream
-from tornado.options import options
+from operator import itemgetter
 from tornado.gen import coroutine
+from tornado.options import options
 from tornado.web import StaticFileHandler, RequestHandler, Application
-from file_util import file_util
 
 from log import Logger
+from file_util import file_util
 
 file_log = Logger().get_logger()
 
@@ -27,9 +24,26 @@ class MainHandler(RequestHandler):
 
 class DownloadIndexHandler(RequestHandler):
     def get(self):
-        download_path = "D:/迅雷下载"
-        files = os.listdir(download_path)
+        path = None
+        try:
+            path = self.get_argument('file')
+        except Exception as e:
+            file_log.error(e)
         files_info = []
+
+        file_log.info(path)
+        if path is None or path is "" or path.endswith("D:/迅雷下载"):
+            download_path = "D:/迅雷下载"
+        else:
+            download_path = path
+            files_info.append({
+                "name": "..",
+                "path": os.path.dirname(download_path),
+                "size": file_util.get_dir_size(os.path.dirname(download_path)),
+                "is_file": os.path.isfile(os.path.dirname(download_path)),
+            })
+
+        files = os.listdir(download_path)
 
         for file in files:
             file_path = os.path.join(download_path, file)
@@ -37,26 +51,15 @@ class DownloadIndexHandler(RequestHandler):
                 "name": file,
                 "path": file_path,
                 "size": file_util.get_dir_size(file_path),
-                "is_dir": os.path.isdir(file_path),
+                "is_file": os.path.isfile(file_path),
             }
             files_info.append(file_info)
 
+        files_info = sorted(files_info, key=itemgetter('is_file', "name"))
         self.render("download/index.html", files=files_info)
 
 
 class DownloadFileHandler(RequestHandler):
-    # def get(self):
-    #     file = self.get_argument('file')
-    #     self.set_header('Content-Type', 'application/octet-stream')
-    #     self.set_header('Content-Disposition', 'attachment; filename=' + file_util.get_path_file_name(file))
-    #     buf_size = 4096
-    #     with open(file, 'rb') as f:
-    #         while True:
-    #             data = f.read(buf_size)
-    #             if not data:
-    #                 break
-    #             self.write(data)
-    #     self.finish()
     @tornado.gen.coroutine
     def get(self):
         file_path = self.get_argument('file')
@@ -72,7 +75,8 @@ class DownloadFileHandler(RequestHandler):
             try:
                 self.write(chunk)
                 yield self.flush()
-            except iostream.StreamClosedError:
+            except iostream.StreamClosedError as e:
+                file_log.error(e)
                 break
         return
 
@@ -102,7 +106,7 @@ class DownloadFileHandler(RequestHandler):
                     return
 
 
-class Application(Application):
+class MySelfApplication(Application):
     def __init__(self):
         handlers = [  # 路由设置
             (r"/main", MainHandler),
@@ -120,21 +124,15 @@ class Application(Application):
             # static_url_prefix='statics',  # 设置html中静态文件的引用路径，默认为/static/
             debug=True,
         )
-        super(Application, self).__init__(handlers, **self.settings)
+        super(MySelfApplication, self).__init__(handlers, **self.settings)
 
 
 if __name__ == "__main__":
     current_path = os.path.dirname(__file__)
 
-    # thread_pool = ThreadPoolExecutor(10)
-
-    # tornado 5 中引入asyncio.set_event_loop即可
-    # asyncio.set_event_loop(asyncio.new_event_loop())
-
     options.define("port", default="8888", help="run on the port", type=int)  # 设置全局变量port
-    # options.define("logging", default=file_log)
     options.parse_command_line()  # 启动应用前面的设置项目
-    # [i.setFormatter(LogFormatter()) for i in logging.getLogger().handlers]
-    http_server = tornado.httpserver.HTTPServer(Application())
+
+    http_server = tornado.httpserver.HTTPServer(MySelfApplication())
     http_server.listen(options.port)  # 在这里应用之前的全局变量port
     tornado.ioloop.IOLoop.instance().start()  # 启动监听

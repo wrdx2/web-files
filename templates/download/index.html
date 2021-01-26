@@ -14,20 +14,23 @@
     <!-- Bootstrap core CSS -->
     <link href="{{static_url('bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
 </head>
-<body>
-<div class="list-group">
+<body class="bg-danger">
+<div class="list-group col-sm-8 col-sm-offset-2">
     <ul class="list-group">
         {% if len(files) > 0 %}
             {% for file in files %}
             <li class="list-group-item">
                 <div class="list-group-item">
-                    <a href="/download/file?file={{file['path']}}">
-                        <!--{% if file["is_dir"] is True %}
-                            <img class="ui-icon" src="{{static_url('download/1.png')}}" alt="文件夹"/>
-                        {% end %}-->
-                        <span>{{file["name"]}}</span>
-                        <span>{{file["size"]}}</span>
-                        <span>{{file["is_dir"]}}</span>
+                    {% if file["is_file"] is True %}
+                        <a href="/download/file?file={{file['path']}}">
+<!--                        <img class="ui-icon" src="{{static_url('download/2.png')}}" alt="文件"/>-->
+                    {% else %}
+                        <a href="/download/index?file={{file['path']}}">
+<!--                        <img class="ui-icon" src="{{static_url('download/1.png')}}" alt="文件夹"/>-->
+                    {% end %}
+                    <span>{{file["name"]}}</span>
+                    <span>{{file["size"]}}</span>
+                    </a>
                     </a>
                 </div>
             </li>
