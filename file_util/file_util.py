@@ -8,6 +8,10 @@ def format_time(longtime):
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(longtime))
 
 
+def get_path_file_name(path):
+    return path.split("\\")[-1]
+
+
 def get_dir_size(file_path):
     size = 0
     if os.path.isdir(file_path):

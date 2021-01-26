@@ -6,7 +6,9 @@ import tornado.ioloop
 # import tornado.web
 # import tornado.websocket
 # from concurrent.futures.thread import ThreadPoolExecutor
+from tornado import iostream
 from tornado.options import options
+from tornado.gen import coroutine
 from tornado.web import StaticFileHandler, RequestHandler, Application
 from file_util import file_util
 
@@ -25,27 +27,79 @@ class MainHandler(RequestHandler):
 
 class DownloadIndexHandler(RequestHandler):
     def get(self):
-        files = os.listdir(current_path)
+        download_path = "D:/迅雷下载"
+        files = os.listdir(download_path)
         files_info = []
 
         for file in files:
-            file_path = os.path.join(current_path, file)
+            file_path = os.path.join(download_path, file)
             file_info = {
                 "name": file,
+                "path": file_path,
                 "size": file_util.get_dir_size(file_path),
-                "is_dir": os.path.isdir(current_path + "/" + file),
+                "is_dir": os.path.isdir(file_path),
             }
             files_info.append(file_info)
 
         self.render("download/index.html", files=files_info)
 
 
-# 调用预设位置接口
-class CallLocation(RequestHandler):
-    def post(self):
-        int(self.get_argument('i'))
-        self.finish("发送成功")
+class DownloadFileHandler(RequestHandler):
+    # def get(self):
+    #     file = self.get_argument('file')
+    #     self.set_header('Content-Type', 'application/octet-stream')
+    #     self.set_header('Content-Disposition', 'attachment; filename=' + file_util.get_path_file_name(file))
+    #     buf_size = 4096
+    #     with open(file, 'rb') as f:
+    #         while True:
+    #             data = f.read(buf_size)
+    #             if not data:
+    #                 break
+    #             self.write(data)
+    #     self.finish()
+    @tornado.gen.coroutine
+    def get(self):
+        file_path = self.get_argument('file')
+        content_length = file_util.getsize(file_path)
+        self.set_header("Content-Length", content_length)
+        self.set_header("Content-Type", "application/octet-stream")
+        self.set_header("Content-Disposition",
+                        ("attachment;filename=%s" % file_util.get_path_file_name(file_path)).encode("utf8"))
+        content = self.get_content(file_path)
+        if isinstance(content, bytes):
+            content = [content]
+        for chunk in content:
+            try:
+                self.write(chunk)
+                yield self.flush()
+            except iostream.StreamClosedError:
+                break
         return
+
+    # 使用python自带的对于yield的应用对文件进行切片，for循环每运用一次就调用一次
+    def get_content(self, file_path):
+        start = None
+        end = None
+        with open(file_path, "rb") as file:
+            if start is not None:
+                file.seek(start)
+            if end is not None:
+                remaining = end - (start or 0)
+            else:
+                remaining = None
+            while True:
+                chunk_size = 64 * 1024  # 每片的大小是64K
+                if remaining is not None and remaining < chunk_size:
+                    chunk_size = remaining
+                chunk = file.read(chunk_size)
+                if chunk:
+                    if remaining is not None:
+                        remaining -= len(chunk)
+                    yield chunk
+                else:
+                    if remaining is not None:
+                        assert remaining == 0
+                    return
 
 
 class Application(Application):
@@ -54,6 +108,7 @@ class Application(Application):
             (r"/main", MainHandler),
             (r"/upload/index", MainHandler),
             (r"/download/index", DownloadIndexHandler),
+            (r"/download/file", DownloadFileHandler),
             # 优化文件路径（不用在url打那么多），设置默认值为index
             (r"/(.*)", StaticFileHandler,
              {"path": "static/", "default_filename": "index.html"}),
