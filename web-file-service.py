@@ -31,7 +31,7 @@ class DownloadIndexHandler(RequestHandler):
             file_log.error(e)
         files_info = []
 
-        file_log.info(path)
+        # file_log.info(path)
         if path is None or path is "" or path.endswith("D:/迅雷下载"):
             download_path = "D:/迅雷下载"
         else:
@@ -39,7 +39,8 @@ class DownloadIndexHandler(RequestHandler):
             files_info.append({
                 "name": "..",
                 "path": os.path.dirname(download_path),
-                "size": file_util.get_dir_size(os.path.dirname(download_path)),
+                "size": 0,
+                # "size": file_util.get_dir_size(os.path.dirname(download_path)),
                 "is_file": os.path.isfile(os.path.dirname(download_path)),
             })
 

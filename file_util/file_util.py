@@ -1,6 +1,34 @@
 import os
-from os.path import join, getsize
 import time
+import wmi
+from os.path import join, getsize
+
+
+def disk():
+    c = wmi.WMI()
+    # 获取硬盘分区
+    i = 0
+    disk_info = []
+    partition_info = []
+    for physical_disk in c.Win32_DiskDrive():
+        disk_free = 0
+        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
+            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
+                disk_free += int(logical_disk.FreeSpace)
+                partition_info.append({
+                    "name": logical_disk.Name,
+                    "size": logical_disk.Size,
+                    "freeSize": logical_disk.FreeSpace,
+                })
+
+        disk_info.append({
+            "name": physical_disk.Caption,
+            "size": physical_disk.Size,
+            "freeSize": disk_free,
+            "par_info": partition_info,
+        })
+    # draw.text((10, 420), image_str, font=font, fill=(0, 0, 0))
+    return disk_info
 
 
 def format_time(longtime):
@@ -36,4 +64,11 @@ def format_byte(number):
 
 
 if __name__ == '__main__':
+    # print(disk())
+    for di in disk():
+        print(di["name"])
+        print("%0.2f" % (float(di["freeSize"]) / float(di["size"])))
+        for p in di["par_info"]:
+            print(p)
+            print("%0.2f" % (float(p["freeSize"]) / float(p["size"])))
     pass

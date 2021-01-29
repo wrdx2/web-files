@@ -13,8 +13,21 @@
 
     <!-- Bootstrap core CSS -->
     <link href="{{static_url('bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+    <script src="{{static_url('bootstrap/js/jquery.min.js')}}"></script>
+    <script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
 </head>
-<body class="bg-danger">
+<body>
+<div class="page-header col-sm-8 col-sm-offset-2">
+    haeder
+</div>
+<div class="col-sm-8 col-sm-offset-2">
+    <br/><ul class="nav nav-pills nav-justified">
+        <li><a href="/">主页</a></li>
+        <li class="active"><a href="/download/index">下载</a></li>
+        <li><a href="/upload/index">上传</a></li>
+        <li><a href="#">主页4</a></li>
+    </ul><br/><br/>
+</div>
 <div class="list-group col-sm-8 col-sm-offset-2">
     <ul class="list-group">
         {% if len(files) > 0 %}
@@ -22,26 +35,30 @@
             <li class="list-group-item">
                 <div class="list-group-item">
                     {% if file["is_file"] is True %}
-                        <a href="/download/file?file={{file['path']}}">
-<!--                        <img class="ui-icon" src="{{static_url('download/2.png')}}" alt="文件"/>-->
+                        <a class="" href="/download/file?file={{file['path']}}">
+                        <span class="glyphicon glyphicon-file"></span> &nbsp;&nbsp;
+                        <span>{{file["name"]}}</span>
+                        <span>{{file["size"]}}</span>
+                        </a>
                     {% else %}
                         <a href="/download/index?file={{file['path']}}">
-<!--                        <img class="ui-icon" src="{{static_url('download/1.png')}}" alt="文件夹"/>-->
+                        <span class="glyphicon glyphicon-folder-close"></span> &nbsp;&nbsp;
+                        <span>{{file["name"]}}</span>
+                        </a>
                     {% end %}
-                    <span>{{file["name"]}}</span>
-                    <span>{{file["size"]}}</span>
-                    </a>
-                    </a>
                 </div>
             </li>
             {% end %}
         {% else %}
             该路径下没有文件。
         {% end %}
-    </ul>
+    </ul><br/>
 </div>
 
-<script src="{{static_url('bootstrap/js/jquery.min.js')}}"></script>
-<script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
+<div class="footer col-sm-8 col-sm-offset-2">
+    123
+    <br/>
+    <br/>
+</div>
 </body>
 </html>
