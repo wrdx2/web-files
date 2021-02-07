@@ -127,6 +127,7 @@ class MySelfApplication(Application):
             # static_url_prefix='statics',  # 设置html中静态文件的引用路径，默认为/static/
             debug=True,
         )
+
         super(MySelfApplication, self).__init__(handlers, **self.settings)
 
 
