@@ -16,7 +16,7 @@ def disk():
             for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
                 disk_free += int(logical_disk.FreeSpace)
                 partition_info.append({
-                    "name": logical_disk.Name,
+                    "name": logical_disk.Name + "\\",
                     "size": logical_disk.Size,
                     "freeSize": logical_disk.FreeSpace,
                 })
@@ -32,7 +32,9 @@ def disk():
 
 
 def format_time(longtime):
-    '''格式化时间的函数'''
+    """
+    格式化时间的函数
+    """
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(longtime))
 
 
@@ -43,15 +45,18 @@ def get_path_file_name(path):
 def get_dir_size(file_path):
     size = 0
     if os.path.isdir(file_path):
-        for root, dirs, files in os.walk(file_path):
-            size += sum([getsize(join(root, name)) for name in files])
+        size = 0
+        # for root, dirs, files in os.walk(file_path):
+        #     size += sum([getsize(join(root, name)) for name in files])
     else:
         size = getsize(file_path)
     return format_byte(size)
 
 
 def format_byte(number):
-    '''格式化文件大小的函数'''
+    """
+    格式化文件大小的函数
+    """
     for (scale, label) in [(1024 * 1024 * 1024, "GB"), (1024 * 1024, "MB"), (1024, "KB")]:
         if number >= scale:
             return "%.2f %s" % (number * 1.0 / scale, label)
@@ -60,15 +65,12 @@ def format_byte(number):
         else:  # 小于1字节
             byte = "%.2f" % (number or 0)
 
-    return (byte[:-3]) if byte.endswith(".00") else byte + "字节"
+    return ((byte[:-3]) if byte.endswith(".00") else byte) + "字节"
 
 
 if __name__ == '__main__':
-    # print(disk())
-    for di in disk():
-        print(di["name"])
-        print("%0.2f" % (float(di["freeSize"]) / float(di["size"])))
-        for p in di["par_info"]:
-            print(p)
-            print("%0.2f" % (float(p["freeSize"]) / float(p["size"])))
-    pass
+    path = "D:/11111"
+    download_path = path.split("/")[-1]
+
+    print(download_path)
+    # pass

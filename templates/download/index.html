@@ -28,7 +28,43 @@
         <li><a href="#">主页4</a></li>
     </ul><br/><br/>
 </div>
-<div class="list-group col-sm-8 col-sm-offset-2">
+<div class="list-group col-sm-2 col-sm-offset-2 bg-info">
+    <ul class="list-group">
+        {% if len(disks) > 0 %}
+            {% for disk in disks %}
+                <span>{{disk["name"]}}</span>
+                {% for par in disk["par_info"] %}
+                    <li class="list-group-item">
+                        <span class="list-group-item-text glyphicon glyphicon-floppy-disk">&nbsp;&nbsp;{{par['name']}}</span>
+                        <br/>
+                        <a class="list-group-item-text" href="/download/index?file={{par['name']}}">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-info" role="progressbar"
+                                     style="width: {{(1 - float(par['freeSize'])/float(par['size'])) * 100}}%;">
+                                     &nbsp;&nbsp;
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                {% end %}
+            {% end %}
+        {% end %}
+    </ul><br/>
+</div>
+<div class="list-group col-sm-6 bg-danger">
+    {% if len(path) > 1 %}
+        <ul class="breadcrumb">
+            {% for i, p in enumerate(path) %}
+                {% if i > 0 %}
+                    {% if i == len(path) - 1 %}
+                        <li class="active">{{p.split('\\')[-1]}}</li>
+                    {% else %}
+                        <li><a href="/download/index?file={{p}}">{{p.split('\\')[-1]}}</a></li>
+                    {% end %}
+                {% end %}
+            {% end %}
+        </ul>
+    {% end %}
     <ul class="list-group">
         {% if len(files) > 0 %}
             {% for file in files %}
@@ -49,8 +85,6 @@
                 </div>
             </li>
             {% end %}
-        {% else %}
-            该路径下没有文件。
         {% end %}
     </ul><br/>
 </div>

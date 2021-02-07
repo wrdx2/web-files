@@ -32,32 +32,35 @@ class DownloadIndexHandler(RequestHandler):
         files_info = []
 
         # file_log.info(path)
-        if path is None or path is "" or path.endswith("D:/迅雷下载"):
-            download_path = "D:/迅雷下载"
+        if path is None or path is "" or not os.path.isdir(path):
+            self.render("download/index.html", path=[], files=files_info, disks=file_util.disk())
+            # self.finish()
         else:
-            download_path = path
-            files_info.append({
-                "name": "..",
-                "path": os.path.dirname(download_path),
-                "size": 0,
-                # "size": file_util.get_dir_size(os.path.dirname(download_path)),
-                "is_file": os.path.isfile(os.path.dirname(download_path)),
-            })
+            download_path = path.replace("/", "\\")
+            download_path = download_path.split("\\")
 
-        files = os.listdir(download_path)
+            bread_path = ""
+            for i, d_path in enumerate(download_path):
+                if d_path is not None and d_path is not "":
+                    bread_path = bread_path + d_path
+                    download_path[i] = bread_path
+                    if i < len(download_path) - 1:
+                        bread_path = bread_path + "\\"
 
-        for file in files:
-            file_path = os.path.join(download_path, file)
-            file_info = {
-                "name": file,
-                "path": file_path,
-                "size": file_util.get_dir_size(file_path),
-                "is_file": os.path.isfile(file_path),
-            }
-            files_info.append(file_info)
+            files = os.listdir(path)
 
-        files_info = sorted(files_info, key=itemgetter('is_file', "name"))
-        self.render("download/index.html", files=files_info)
+            for file in files:
+                file_path = os.path.join(path, file)
+                file_info = {
+                    "name": file,
+                    "path": file_path,
+                    "size": file_util.get_dir_size(file_path),
+                    "is_file": os.path.isfile(file_path),
+                }
+                files_info.append(file_info)
+
+            files_info = sorted(files_info, key=itemgetter('is_file', "name"))
+            self.render("download/index.html", path=download_path, files=files_info, disks=file_util.disk())
 
 
 class DownloadFileHandler(RequestHandler):
@@ -115,8 +118,7 @@ class MySelfApplication(Application):
             (r"/download/index", DownloadIndexHandler),
             (r"/download/file", DownloadFileHandler),
             # 优化文件路径（不用在url打那么多），设置默认值为index
-            (r"/(.*)", StaticFileHandler,
-             {"path": "static/", "default_filename": "index.html"}),
+            (r"/(.*)", StaticFileHandler, {"path": "static/", "default_filename": "index.html"}),
         ]
 
         self.settings = dict(
@@ -136,4 +138,5 @@ if __name__ == "__main__":
 
     http_server = tornado.httpserver.HTTPServer(MySelfApplication())
     http_server.listen(options.port)  # 在这里应用之前的全局变量port
+    os.system(r"cmd /c start http://127.0.0.1:8888")
     tornado.ioloop.IOLoop.instance().start()  # 启动监听
