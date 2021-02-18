@@ -28,15 +28,15 @@
         <li><a href="#">主页4</a></li>
     </ul><br/><br/>
 </div>
-<div class="list-group col-sm-2 col-sm-offset-2 bg-info">
+<div class="justify-content-center col-sm-2 col-sm-offset-2 bg-info">
     <ul class="list-group">
         {% if len(disks) > 0 %}
             {% for disk in disks %}
                 <span>{{disk["name"]}}</span>
                 {% for par in disk["par_info"] %}
                     <li class="list-group-item">
-                        <span class="list-group-item-text glyphicon glyphicon-floppy-disk">&nbsp;&nbsp;{{par['name']}}</span>
-                        <br/>
+                        <span class="list-group-item-heading glyphicon glyphicon-floppy-disk">&nbsp;{{par['name']}}</span>
+
                         <a class="list-group-item-text" href="/download/index?file={{par['name']}}">
                             <div class="progress">
                                 <div class="progress-bar progress-bar-info" role="progressbar"
@@ -45,23 +45,24 @@
                                 </div>
                             </div>
                         </a>
+                        {{par['freeSize_str']}} 可用，共 {{par['size_str']}}
                     </li>
                 {% end %}
             {% end %}
         {% end %}
     </ul><br/>
 </div>
-<div class="list-group col-sm-6 bg-danger">
-    {% if len(path) > 1 %}
+<div class="justify-content-center col-sm-6 bg-danger">
+    {% if len(path) >= 1 %}
         <ul class="breadcrumb">
             {% for i, p in enumerate(path) %}
-                {% if i > 0 %}
+<!--                {% if i > 0 %}-->
                     {% if i == len(path) - 1 %}
                         <li class="active">{{p.split('\\')[-1]}}</li>
                     {% else %}
                         <li><a href="/download/index?file={{p}}">{{p.split('\\')[-1]}}</a></li>
                     {% end %}
-                {% end %}
+<!--                {% end %}-->
             {% end %}
         </ul>
     {% end %}

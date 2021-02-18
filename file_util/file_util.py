@@ -18,13 +18,17 @@ def disk():
                 partition_info.append({
                     "name": logical_disk.Name + "\\",
                     "size": logical_disk.Size,
+                    "size_str": format_byte(int(logical_disk.Size)),
                     "freeSize": logical_disk.FreeSpace,
+                    "freeSize_str": format_byte(int(logical_disk.FreeSpace)),
                 })
 
         disk_info.append({
             "name": physical_disk.Caption,
             "size": physical_disk.Size,
+            "size_str": format_byte(int(physical_disk.Size)),
             "freeSize": disk_free,
+            "freeSize_str": format_byte(int(disk_free)),
             "par_info": partition_info,
         })
     # draw.text((10, 420), image_str, font=font, fill=(0, 0, 0))
@@ -57,15 +61,12 @@ def format_byte(number):
     """
     格式化文件大小的函数
     """
-    for (scale, label) in [(1024 * 1024 * 1024, "GB"), (1024 * 1024, "MB"), (1024, "KB")]:
+    for (scale, label) in [(1024 * 1024 * 1024, "GB"), (1024 * 1024, "MB"), (1024, "KB"), (1, "字节")]:
         if number >= scale:
-            return "%.2f %s" % (number * 1.0 / scale, label)
-        elif number == 1:
-            return "1字节"
-        else:  # 小于1字节
-            byte = "%.2f" % (number or 0)
+            byte = "%.2f" % (number * 1.0 / scale or 0)
+            return "%s %s" % (((byte[:-3]) if byte.endswith(".00") else byte), label)
 
-    return ((byte[:-3]) if byte.endswith(".00") else byte) + "字节"
+    return "0"
 
 
 if __name__ == '__main__':

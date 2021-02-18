@@ -36,16 +36,18 @@ class DownloadIndexHandler(RequestHandler):
             self.render("download/index.html", path=[], files=files_info, disks=file_util.disk())
             # self.finish()
         else:
-            download_path = path.replace("/", "\\")
-            download_path = download_path.split("\\")
+            download_path = ("\\" + path).replace("/", "\\")
+            if not path.endswith("\\"):
+                path = path + "\\"
+            download_path = download_path.rstrip("\\").split("\\")
 
             bread_path = ""
             for i, d_path in enumerate(download_path):
                 if d_path is not None and d_path is not "":
                     bread_path = bread_path + d_path
                     download_path[i] = bread_path
-                    if i < len(download_path) - 1:
-                        bread_path = bread_path + "\\"
+                    # if i < len(download_path) - 1:
+                    bread_path = bread_path + "\\"
 
             files = os.listdir(path)
 
